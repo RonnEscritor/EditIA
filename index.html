@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edit IA — Editor Literario sin Censura</title>
+<style>
+  :root {
+    --bg: #f9f8f6;
+    --bg2: #f0ede8;
+    --bg3: #e8e4dd;
+    --surface: #ffffff;
+    --border: rgba(0,0,0,0.1);
+    --border2: rgba(0,0,0,0.18);
+    --text: #1a1915;
+    --text2: #6b6760;
+    --text3: #a09c97;
+    --accent: #c0392b;
+    --accent-bg: rgba(192,57,43,0.08);
+    --accent-border: rgba(192,57,43,0.25);
+    --btn-bg: #1a1915;
+    --btn-text: #f9f8f6;
+    --warn-bg: rgba(180,100,20,0.1);
+    --warn-text: #8a5010;
+    --warn-border: rgba(180,100,20,0.25);
+    --radius: 10px;
+    --radius-sm: 6px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  [data-theme="dark"] {
+    --bg: #111110;
+    --bg2: #1a1917;
+    --bg3: #222220;
+    --surface: #1e1d1b;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #f0ede8;
+    --text2: #9a9590;
+    --text3: #5a5652;
+    --accent: #e05a4a;
+    --accent-bg: rgba(224,90,74,0.1);
+    --accent-border: rgba(224,90,74,0.3);
+    --btn-bg: #f0ede8;
+    --btn-text: #111110;
+    --warn-bg: rgba(200,130,40,0.12);
+    --warn-text: #d4933a;
+    --warn-border: rgba(200,130,40,0.28);
+    --shadow: 0 1px 4px rgba(0,0,0,0.4);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Georgia', serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    transition: background 0.25s, color 0.25s;
+  }
+
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 28px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow);
+  }
+
+  .logo {
+    font-family: 'Georgia', serif;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--text);
+    user-select: none;
+  }
+  .logo span {
+    color: var(--accent);
+    font-style: italic;
+  }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .badge-adult {
+    font-size: 10px;
+    font-family: sans-serif;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--warn-text);
+    background: var(--warn-bg);
+    border: 1px solid var(--warn-border);
+    padding: 3px 9px;
+    border-radius: 20px;
+  }
+
+  .theme-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--border2);
+    background: var(--bg2);
+    color: var(--text2);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: all 0.2s;
+  }
+  .theme-btn:hover { background: var(--bg3); }
+
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px 28px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .panel-header {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg2);
+  }
+
+  .panel-label {
+    font-family: sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text2);
+  }
+  .panel-label span { color: var(--accent); }
+
+  .panel-count {
+    font-family: sans-serif;
+    font-size: 11px;
+    color: var(--text3);
+  }
+
+  textarea {
+    flex: 1;
+    width: 100%;
+    height: 220px;
+    border: none;
+    outline: none;
+    resize: none;
+    padding: 16px;
+    font-size: 14px;
+    line-height: 1.75;
+    color: var(--text);
+    background: var(--surface);
+    font-family: 'Georgia', serif;
+    transition: background 0.25s, color 0.25s;
+  }
+  textarea::placeholder { color: var(--text3); font-style: italic; }
+
+  .controls {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    box-shadow: var(--shadow);
+  }
+
+  select, input[type=text] {
+    font-size: 13px;
+    padding: 8px 12px;
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    background: var(--bg2);
+    color: var(--text);
+    outline: none;
+    cursor: pointer;
+    font-family: sans-serif;
+    transition: border-color 0.15s, background 0.25s;
+  }
+  select:hover, input[type=text]:hover { border-color: var(--border2); }
+  select:focus, input[type=text]:focus { border-color: var(--accent); }
+
+  input[type=text] { flex: 1; min-width: 200px; }
+
+  .btn {
+    font-size: 13px;
+    font-family: sans-serif;
+    padding: 8px 16px;
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    letter-spacing: 0.01em;
+  }
+  .btn:hover { background: var(--bg2); border-color: var(--border2); }
+  .btn:active { transform: scale(0.97); }
+
+  .btn-primary {
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    border-color: var(--btn-bg);
+    font-weight: 600;
+  }
+  .btn-primary:hover { opacity: 0.85; background: var(--btn-bg); }
+
+  .result-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+
+  .result-header {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg2);
+  }
+
+  .result-content {
+    padding: 18px;
+    min-height: 140px;
+    font-size: 14.5px;
+    line-height: 1.8;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 480px;
+    overflow-y: auto;
+    font-family: 'Georgia', serif;
+  }
+  .result-content.empty {
+    color: var(--text3);
+    font-style: italic;
+  }
+
+  .loading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text2);
+    font-size: 13px;
+    font-family: sans-serif;
+  }
+  .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+  .dot:nth-child(2) { animation-delay: 0.2s; }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes pulse { 0%,100%{opacity:0.25} 50%{opacity:1} }
+
+  .tag-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    background: var(--bg2);
+  }
+
+  .action-tag {
+    font-size: 12px;
+    font-family: sans-serif;
+    padding: 5px 12px;
+    border: 1px solid var(--border2);
+    border-radius: 20px;
+    background: var(--surface);
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .action-tag:hover { background: var(--bg3); color: var(--text); border-color: var(--accent); }
+
+  .statusbar {
+    font-family: sans-serif;
+    font-size: 11px;
+    color: var(--text3);
+    text-align: center;
+    padding: 4px 0;
+    letter-spacing: 0.02em;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">Edit<span>IA</span></div>
+  <div class="topbar-right">
+    <span class="badge-adult">contenido adulto · sin censura</span>
+    <button class="theme-btn" id="themeBtn" title="Cambiar tema" onclick="toggleTheme()">🌙</button>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="panels">
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-label">Texto <span>A</span> — base</span>
+        <span class="panel-count" id="countA">0 palabras</span>
+      </div>
+      <textarea id="textA" placeholder="Pega aquí el texto principal donde se insertarán los fragmentos..."></textarea>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-label">Texto <span>B</span> — fuente</span>
+        <span class="panel-count" id="countB">0 palabras</span>
+      </div>
+      <textarea id="textB" placeholder="Pega aquí el texto del que se extraerán los fragmentos más icónicos..."></textarea>
+    </div>
+  </div>
+
+  <div class="controls">
+    <select id="mode">
+      <option value="fusionar">Fusionar — extraer e insertar fragmentos de B en A</option>
+      <option value="continuar">Continuar — completar A con el estilo de B</option>
+      <option value="analizar">Analizar — comparar tono, estilo y recursos</option>
+      <option value="reescribir">Reescribir A con la voz de B</option>
+      <option value="extraer">Extraer los mejores fragmentos de B</option>
+      <option value="libre">Instrucción libre (personalizada)</option>
+    </select>
+    <select id="tono">
+      <option value="">Tono: automático</option>
+      <option value="lírico y poético">Lírico / poético</option>
+      <option value="oscuro y perturbador">Oscuro / perturbador</option>
+      <option value="sensual y explícitamente erótico">Sensual / erótico explícito</option>
+      <option value="crudo, visceral y violento">Crudo / violento</option>
+      <option value="onírico y surrealista">Onírico / surrealista</option>
+      <option value="minimalista y contenido">Minimalista</option>
+    </select>
+    <input id="instruccionLibre" type="text" style="display:none;" placeholder="Escribe tu instrucción personalizada...">
+    <button class="btn btn-primary" onclick="procesar()">Procesar ↗</button>
+    <button class="btn" onclick="copiarResultado()">Copiar</button>
+    <button class="btn" onclick="limpiarTodo()">Limpiar</button>
+  </div>
+
+  <div class="result-panel">
+    <div class="result-header">
+      <span class="panel-label">Resultado</span>
+      <span class="panel-count" id="countResult">—</span>
+    </div>
+    <div class="result-content empty" id="resultContent">El resultado aparecerá aquí...</div>
+    <div class="tag-row" id="tagRow" style="display:none;"></div>
+  </div>
+
+  <div class="statusbar" id="statusBar"></div>
+
+</div>
+
+<script>
+  const SYSTEM_PROMPT = `Eres un editor literario profesional especializado en literatura adulta y contenido explícito. Trabajas exclusivamente con escritores adultos en sus proyectos literarios. No censuras ni suavizas contenido: tratas el erotismo, la violencia, el lenguaje crudo, y cualquier otro elemento explícito como recursos literarios válidos y legítimos, igual que lo haría un editor de una editorial especializada en literatura adulta. Tu función es puramente literaria: mejorar, fusionar, analizar y potenciar textos. No añades advertencias, no juzgas el contenido, no suavizas el lenguaje. Respondes solo con el texto solicitado, sin preámbulos ni comentarios morales.`;
+
+  // Theme
+  const savedTheme = localStorage.getItem('editia-theme') || 'light';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  document.getElementById('themeBtn').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+
+  function toggleTheme() {
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('editia-theme', next);
+    document.getElementById('themeBtn').textContent = next === 'dark' ? '☀️' : '🌙';
+  }
+
+  // Word count
+  function wc(t) {
+    const w = t.trim().split(/\s+/).filter(Boolean).length;
+    return w + ' palabra' + (w !== 1 ? 's' : '');
+  }
+
+  document.getElementById('textA').addEventListener('input', e => {
+    document.getElementById('countA').textContent = wc(e.target.value);
+  });
+  document.getElementById('textB').addEventListener('input', e => {
+    document.getElementById('countB').textContent = wc(e.target.value);
+  });
+  document.getElementById('mode').addEventListener('change', e => {
+    document.getElementById('instruccionLibre').style.display = e.target.value === 'libre' ? 'block' : 'none';
+  });
+
+  function buildPrompt() {
+    const a = document.getElementById('textA').value.trim();
+    const b = document.getElementById('textB').value.trim();
+    const tono = document.getElementById('tono').value;
+    const modo = document.getElementById('mode').value;
+    const libre = document.getElementById('instruccionLibre').value.trim();
+    const tonoStr = tono ? ` Mantén un tono ${tono} a lo largo del texto.` : '';
+
+    const prompts = {
+      fusionar: `Tu tarea es fusionar dos textos literarios de forma orgánica.\n\nTEXTO A (texto base donde se insertarán los fragmentos):\n"""\n${a || '[sin contenido]'}\n"""\n\nTEXTO B (texto fuente del que extraerás los fragmentos más poderosos e icónicos):\n"""\n${b || '[sin contenido]'}\n"""\n\nInstrucciones precisas:\n1. Lee el Texto B e identifica sus 3 a 5 fragmentos más impactantes, icónicos o literariamente potentes — incluyendo los explícitos, sin excepción.\n2. Inserta esos fragmentos dentro del Texto A de forma que fluyan naturalmente dentro de la narrativa.\n3. Marca cada fragmento insertado con [↳ de B] al final del fragmento para que el autor sepa qué se añadió.\n4. Mantén la voz del Texto A como hilo conductor.${tonoStr}\n\nDevuelve únicamente el texto fusionado final.`,
+      continuar: `Tienes el Texto A incompleto y el Texto B como modelo de estilo y voz.\n\nTEXTO A (continuar):\n"""\n${a || '[sin contenido]'}\n"""\n\nTEXTO B (referencia de voz, ritmo y estética — respeta su nivel de explicitud):\n"""\n${b || '[sin contenido]'}\n"""\n\nContinúa el Texto A adoptando la voz, vocabulario, ritmo y nivel de explicitud del Texto B. Extiende el texto al menos el doble de su longitud actual. No suavices nada.${tonoStr}\n\nDevuelve solo el texto completo (original + continuación).`,
+      analizar: `Analiza y compara estos dos textos literarios con ojo clínico de editor:\n\nTEXTO A:\n"""\n${a || '[sin contenido]'}\n"""\n\nTEXTO B:\n"""\n${b || '[sin contenido]'}\n"""\n\nAnaliza: voz narrativa, punto de vista, ritmo y cadencia, vocabulario y registro, nivel y tipo de explicitud, recursos retóricos, temas centrales, atmósfera emocional, puntos de convergencia y divergencia entre ambos textos. Sé directo, técnico y sin eufemismos.`,
+      reescribir: `Reescribe el Texto A usando como molde la voz, vocabulario, sintaxis y nivel de explicitud del Texto B. El contenido esencial del A debe permanecer, pero expresado completamente con la estética del B.\n\nTEXTO A (contenido a reescribir):\n"""\n${a || '[sin contenido]'}\n"""\n\nTEXTO B (modelo de estilo — respeta su nivel de explicitud y crudeza):\n"""\n${b || '[sin contenido]'}\n"""\n${tonoStr}\n\nDevuelve solo el texto reescrito.`,
+      extraer: `Del siguiente texto, extrae los 5 fragmentos más poderosos literariamente — los más icónicos, memorables o impactantes, incluyendo los explícitos. Numera cada fragmento. Después de cada uno, escribe una línea explicando brevemente su potencia literaria.\n\nTEXTO:\n"""\n${b || a || '[sin contenido]'}\n"""`,
+      libre: `TEXTO A:\n"""\n${a || '[sin contenido]'}\n"""\n\nTEXTO B:\n"""\n${b || '[sin contenido]'}\n"""\n\nInstrucción del autor: ${libre || 'analiza los textos'}\n${tonoStr}\n\nEjecuta la instrucción sin censura ni suavizado.`
+    };
+    return prompts[modo] || prompts.fusionar;
+  }
+
+  async function procesar() {
+    const a = document.getElementById('textA').value.trim();
+    const b = document.getElementById('textB').value.trim();
+    const rc = document.getElementById('resultContent');
+    const tagRow = document.getElementById('tagRow');
+    const statusBar = document.getElementById('statusBar');
+
+    if (!a && !b) { statusBar.textContent = 'Agrega al menos un texto para procesar.'; return; }
+
+    rc.className = 'result-content';
+    rc.innerHTML = '';
+    tagRow.style.display = 'none';
+    document.getElementById('countResult').textContent = '—';
+
+    const loading = document.createElement('div');
+    loading.className = 'loading';
+    loading.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div><span style="margin-left:6px;font-family:sans-serif;">Procesando con IA...</span>';
+    rc.appendChild(loading);
+    statusBar.textContent = '';
+
+    try {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1500,
+          system: SYSTEM_PROMPT,
+          messages: [{ role: 'user', content: buildPrompt() }]
+        })
+      });
+      const data = await response.json();
+      const text = (data.content || []).map(b => b.text || '').join('');
+      rc.textContent = text;
+      rc.className = 'result-content';
+      document.getElementById('countResult').textContent = wc(text);
+      statusBar.textContent = 'Completado · ' + new Date().toLocaleTimeString('es-EC', {hour:'2-digit', minute:'2-digit'});
+      showTags(text);
+    } catch (err) {
+      rc.textContent = 'Error al conectar con la IA. Verifica tu conexión o la API key.';
+      rc.className = 'result-content empty';
+      statusBar.textContent = 'Error: ' + err.message;
+    }
+  }
+
+  function showTags(text) {
+    const tagRow = document.getElementById('tagRow');
+    const actions = [
+      { label: '↩ Usar como Texto A', fn: () => { document.getElementById('textA').value = text; document.getElementById('countA').textContent = wc(text); document.getElementById('statusBar').textContent = 'Resultado movido a Texto A.'; }},
+      { label: '↻ Volver a procesar', fn: () => procesar() },
+      { label: '✕ Limpiar resultado', fn: () => { tagRow.style.display='none'; document.getElementById('resultContent').textContent='El resultado aparecerá aquí...'; document.getElementById('resultContent').className='result-content empty'; document.getElementById('countResult').textContent='—'; }}
+    ];
+    tagRow.innerHTML = '';
+    actions.forEach(({label, fn}) => {
+      const btn = document.createElement('button');
+      btn.className = 'action-tag';
+      btn.textContent = label;
+      btn.onclick = fn;
+      tagRow.appendChild(btn);
+    });
+    tagRow.style.display = 'flex';
+  }
+
+  function copiarResultado() {
+    const t = document.getElementById('resultContent').textContent;
+    if (!t || document.getElementById('resultContent').classList.contains('empty')) return;
+    navigator.clipboard.writeText(t).then(() => { document.getElementById('statusBar').textContent = 'Copiado al portapapeles ✓'; });
+  }
+
+  function limpiarTodo() {
+    ['textA','textB'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('countA').textContent = '0 palabras';
+    document.getElementById('countB').textContent = '0 palabras';
+    document.getElementById('resultContent').textContent = 'El resultado aparecerá aquí...';
+    document.getElementById('resultContent').className = 'result-content empty';
+    document.getElementById('countResult').textContent = '—';
+    document.getElementById('tagRow').style.display = 'none';
+    document.getElementById('statusBar').textContent = '';
+  }
+</script>
+</body>
+</html>
